@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import React, { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   AlertCircle,
+  CalendarHeart,
   CheckCircle2,
   ExternalLink,
   Mail,
   MapPin,
+  MessageCircle,
   Phone,
   Send,
-  Share2,
 } from 'lucide-react';
 import { COMPANY_CONTACT, SERVICES } from '../data/companyData';
 import { AnimatedHeadingReveal } from './MotionPrimitives';
@@ -33,6 +34,48 @@ const INITIAL_FORM: FormValues = {
   message: '',
 };
 
+const TikTokGlyph: React.FC<{ className?: string }> = ({ className = 'h-4 w-4' }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+  </svg>
+);
+
+export const FloatingMobileBookButton: React.FC = () => {
+  const [hideOnContact, setHideOnContact] = useState(false);
+
+  useEffect(() => {
+    const contactEl = document.getElementById('contact');
+    if (!contactEl) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setHideOnContact(entry.isIntersecting),
+      { threshold: 0.15 }
+    );
+    observer.observe(contactEl);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <AnimatePresence>
+      {!hideOnContact && (
+        <motion.a
+          href="#contact"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 16 }}
+          whileTap={{ scale: 0.96 }}
+          transition={{ duration: 0.22 }}
+          className="kk-shimmer-btn md:hidden fixed bottom-4 left-4 z-40 inline-flex min-h-[44px] items-center gap-2 border border-[#C5A46D] bg-[#541C2B] px-4 py-2.5 text-xs font-semibold text-[#FAF8F4] shadow-xl backdrop-blur-md whitespace-nowrap"
+          style={{ borderRadius: 'var(--radius-btn)' }}
+        >
+          <CalendarHeart className="h-4 w-4 text-[#C5A46D]" aria-hidden="true" />
+          <span>Book Now</span>
+        </motion.a>
+      )}
+    </AnimatePresence>
+  );
+};
+
 export const ContactSection: React.FC = () => {
   const [values, setValues] = useState<FormValues>(INITIAL_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -43,45 +86,42 @@ export const ContactSection: React.FC = () => {
     const nextErrors: FormErrors = {};
 
     if (!data.fullName.trim() || data.fullName.trim().length < 2) {
-      nextErrors.fullName = 'Please enter your full name (at least 2 characters).';
+      nextErrors.fullName = 'Enter your name.';
     }
 
     const digitsOnly = data.phoneNumber.replace(/[^\d]/g, '');
     if (!data.phoneNumber.trim() || digitsOnly.length < 7) {
-      nextErrors.phoneNumber = 'Please provide a valid contact phone number (at least 7 digits).';
+      nextErrors.phoneNumber = 'Enter a valid phone.';
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!data.email.trim() || !emailRegex.test(data.email.trim())) {
-      nextErrors.email = 'Please enter a valid email address (e.g., name@domain.com).';
+      nextErrors.email = 'Enter a valid email.';
     }
 
     if (!data.eventType.trim()) {
-      nextErrors.eventType = 'Please select an event type.';
+      nextErrors.eventType = 'Select event type.';
     }
 
     if (!data.preferredDate.trim()) {
-      nextErrors.preferredDate = 'Please select a preferred event date.';
+      nextErrors.preferredDate = 'Select an upcoming date.';
     } else {
       const selected = new Date(data.preferredDate + 'T00:00:00');
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       if (selected < today) {
-        nextErrors.preferredDate = 'Preferred event date cannot be in the past.';
+        nextErrors.preferredDate = 'Date must be upcoming.';
       }
     }
 
     if (!data.message.trim() || data.message.trim().length < 10) {
-      nextErrors.message = 'Please share a brief overview of your event (at least 10 characters).';
+      nextErrors.message = 'Add 10+ characters.';
     }
 
     return nextErrors;
   };
 
-  const handleChange = (
-    field: keyof FormValues,
-    value: string
-  ) => {
+  const handleChange = (field: keyof FormValues, value: string) => {
     setValues((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => {
@@ -112,161 +152,119 @@ export const ContactSection: React.FC = () => {
   };
 
   const inputBaseClass =
-    'w-full rounded-md border bg-white px-4 py-2.5 text-sm text-[#202020] placeholder:text-[#202020]/45 dark:bg-[#1a1a1a] dark:text-white dark:placeholder:text-white/40 transition-colors focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-[#C5A46D]';
+    'w-full min-h-[44px] border bg-[var(--bg)] px-4 py-2.5 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)]/60 transition-colors focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-[var(--accent)]';
 
   return (
     <section
       id="contact"
-      className="bg-[#FAF8F4] dark:bg-[#151515] py-20 sm:py-24"
+      className="kk-section bg-[var(--surface)]"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="kk-container">
         <AnimatedHeadingReveal
-          eyebrow="Contact Us"
-          title="Begin Planning Your Celebration With Us"
-          subtitle="Share your event date, guest scale, and styling priorities. Our planning team will review your brief to prepare an initial consultation."
-          className="max-w-2xl"
+          eyebrow="Contact"
+          title="Get In Touch"
+          className="max-w-lg"
         />
 
-        <div className="mt-12 grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
-          {/* Company Contact Directory (No Fabricated Details) */}
+        <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
+          {/* Studio Channels + WhatsApp / Telegram / TikTok Icon Buttons */}
           <motion.aside
             initial={{ opacity: 0, y: 18 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.15 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-5 flex flex-col justify-between rounded-xl border border-[#541C2B]/12 dark:border-white/10 bg-white dark:bg-[#222222] p-7 sm:p-8"
+            className="lg:col-span-5 min-w-0 flex flex-col justify-between border border-[var(--border-strong)] bg-[var(--bg)]/85 backdrop-blur-md p-6 sm:p-8 shadow-[var(--shadow)]"
+            style={{ borderRadius: 'var(--radius)' }}
           >
             <div>
-              <h3 className="font-display text-2xl font-semibold text-[#541C2B] dark:text-[#C5A46D]">
-                Company Contact Information
+              <h3 className="font-display text-2xl font-semibold text-[var(--accent)]">
+                Studio Direct
               </h3>
-              <p className="mt-2 text-xs leading-relaxed text-[#202020]/65 dark:text-white/65">
-                Official studio channels for KK Decor and Event. Contact fields marked pending are
-                configurable in the company profile directory.
-              </p>
 
-              <dl className="mt-8 space-y-6">
-                {/* Phone */}
-                <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#C5A46D]/40 bg-[#FAF8F4] dark:bg-[#1a1a1a]">
-                    <Phone className="h-4 w-4 text-[#541C2B] dark:text-[#C5A46D]" aria-hidden="true" />
+              <dl className="mt-7 space-y-5">
+                <div className="flex items-center gap-4">
+                  <div
+                    className="flex h-11 w-11 shrink-0 items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)]"
+                    style={{ borderRadius: 'calc(var(--radius) * 0.65)' }}
+                  >
+                    <Phone className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
                   </div>
-                  <div>
-                    <dt className="text-xs font-semibold text-[#202020] dark:text-white">
-                      Phone Number
-                    </dt>
-                    <dd className="mt-1 text-sm text-[#202020]/80 dark:text-white/80">
-                      {COMPANY_CONTACT.phone.value}
-                    </dd>
-                    {!COMPANY_CONTACT.phone.isConfigured && (
-                      <dd className="mt-1 text-xs text-[#202020]/55 dark:text-white/55">
-                        {COMPANY_CONTACT.phone.placeholderNotice}
-                      </dd>
-                    )}
+                  <div className="min-w-0">
+                    <dt className="text-xs font-semibold text-[var(--text)]">Phone</dt>
+                    <dd className="text-sm text-[var(--text-muted)]">{COMPANY_CONTACT.phone}</dd>
                   </div>
                 </div>
 
-                {/* Email */}
-                <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#C5A46D]/40 bg-[#FAF8F4] dark:bg-[#1a1a1a]">
-                    <Mail className="h-4 w-4 text-[#541C2B] dark:text-[#C5A46D]" aria-hidden="true" />
+                <div className="flex items-center gap-4">
+                  <div
+                    className="flex h-11 w-11 shrink-0 items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)]"
+                    style={{ borderRadius: 'calc(var(--radius) * 0.65)' }}
+                  >
+                    <Mail className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
                   </div>
-                  <div>
-                    <dt className="text-xs font-semibold text-[#202020] dark:text-white">
-                      Email Address
-                    </dt>
-                    <dd className="mt-1 text-sm text-[#202020]/80 dark:text-white/80">
-                      {COMPANY_CONTACT.email.value}
-                    </dd>
-                    {!COMPANY_CONTACT.email.isConfigured && (
-                      <dd className="mt-1 text-xs text-[#202020]/55 dark:text-white/55">
-                        {COMPANY_CONTACT.email.placeholderNotice}
-                      </dd>
-                    )}
+                  <div className="min-w-0">
+                    <dt className="text-xs font-semibold text-[var(--text)]">Email</dt>
+                    <dd className="text-sm text-[var(--text-muted)]">{COMPANY_CONTACT.email}</dd>
                   </div>
                 </div>
 
-                {/* Office Location */}
-                <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#C5A46D]/40 bg-[#FAF8F4] dark:bg-[#1a1a1a]">
-                    <MapPin className="h-4 w-4 text-[#541C2B] dark:text-[#C5A46D]" aria-hidden="true" />
+                <div className="flex items-center gap-4">
+                  <div
+                    className="flex h-11 w-11 shrink-0 items-center justify-center border border-[var(--border-strong)] bg-[var(--surface)]"
+                    style={{ borderRadius: 'calc(var(--radius) * 0.65)' }}
+                  >
+                    <MapPin className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
                   </div>
-                  <div>
-                    <dt className="text-xs font-semibold text-[#202020] dark:text-white">
-                      Office Location
-                    </dt>
-                    <dd className="mt-1 text-sm text-[#202020]/80 dark:text-white/80">
-                      {COMPANY_CONTACT.officeLocation.value}
-                    </dd>
-                    {!COMPANY_CONTACT.officeLocation.isConfigured && (
-                      <dd className="mt-1 text-xs text-[#202020]/55 dark:text-white/55">
-                        {COMPANY_CONTACT.officeLocation.placeholderNotice}
-                      </dd>
-                    )}
-                  </div>
-                </div>
-
-                {/* Social Media & TikTok */}
-                <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#C5A46D]/40 bg-[#FAF8F4] dark:bg-[#1a1a1a]">
-                    <Share2 className="h-4 w-4 text-[#541C2B] dark:text-[#C5A46D]" aria-hidden="true" />
-                  </div>
-                  <div className="flex-1">
-                    <dt className="text-xs font-semibold text-[#202020] dark:text-white">
-                      TikTok &amp; Social Media Links
-                    </dt>
-                    <dd className="mt-2 space-y-2">
-                      {COMPANY_CONTACT.additionalSocials.map((social) => (
-                        <div
-                          key={social.platform}
-                          className="flex items-center justify-between gap-2 text-xs"
-                        >
-                          <span className="font-medium text-[#202020]/80 dark:text-white/80">
-                            {social.platform}
-                          </span>
-                          {social.url ? (
-                            <a
-                              href={social.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 font-semibold text-[#541C2B] hover:underline dark:text-[#C5A46D]"
-                            >
-                              <span>{social.status}</span>
-                              <ExternalLink className="h-3 w-3" aria-hidden="true" />
-                            </a>
-                          ) : (
-                            <span className="text-[#202020]/55 dark:text-white/55">
-                              {social.status}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </dd>
+                  <div className="min-w-0">
+                    <dt className="text-xs font-semibold text-[var(--text)]">Studio</dt>
+                    <dd className="text-sm text-[var(--text-muted)]">{COMPANY_CONTACT.studio}</dd>
                   </div>
                 </div>
               </dl>
             </div>
 
-            <div className="mt-8 border-t border-[#541C2B]/10 dark:border-white/10 pt-5">
-              <a
-                href={COMPANY_CONTACT.tiktok.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-[42px] w-full items-center justify-center gap-2 rounded-md border border-[#541C2B]/20 bg-[#FAF8F4] px-4 py-2.5 text-xs font-semibold text-[#541C2B] hover:border-[#C5A46D] dark:border-[#C5A46D]/35 dark:bg-[#1a1a1a] dark:text-[#C5A46D] transition-colors"
-              >
-                <span>Follow {COMPANY_CONTACT.tiktok.handle} on TikTok</span>
-                <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-              </a>
+            {/* WhatsApp / Telegram / TikTok Icon Action Bar */}
+            <div className="mt-8 border-t border-[var(--border)] pt-6">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                Connect
+              </p>
+              <div className="grid grid-cols-3 gap-2.5">
+                {COMPANY_CONTACT.channels.map((ch) => (
+                  <motion.a
+                    key={ch.id}
+                    href={ch.href}
+                    target={ch.external ? '_blank' : undefined}
+                    rel={ch.external ? 'noopener noreferrer' : undefined}
+                    whileTap={{ scale: 0.96 }}
+                    aria-label={ch.label}
+                    className="kk-shimmer-btn inline-flex min-h-[44px] items-center justify-center gap-2 border border-[var(--border-strong)] bg-[var(--surface)] px-3 py-2 text-xs font-semibold text-[var(--accent)] hover:border-[var(--accent)] transition-colors whitespace-nowrap"
+                    style={{ borderRadius: 'var(--radius-btn)' }}
+                  >
+                    {ch.id === 'whatsapp' && (
+                      <MessageCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    )}
+                    {ch.id === 'telegram' && (
+                      <Send className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    )}
+                    {ch.id === 'tiktok' && (
+                      <TikTokGlyph className="h-4 w-4 shrink-0" />
+                    )}
+                    <span>{ch.label}</span>
+                    {ch.external && <ExternalLink className="h-3 w-3 shrink-0 opacity-65" aria-hidden="true" />}
+                  </motion.a>
+                ))}
+              </div>
             </div>
           </motion.aside>
 
-          {/* Validated Event Consultation Form */}
+          {/* Short Consultation Form */}
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.15 }}
             transition={{ duration: 0.5, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-7 rounded-xl border border-[#541C2B]/12 dark:border-white/10 bg-white dark:bg-[#222222] p-7 sm:p-8"
+            className="lg:col-span-7 min-w-0 border border-[var(--border-strong)] bg-[var(--bg)]/85 backdrop-blur-md p-6 sm:p-8 shadow-[var(--shadow)]"
+            style={{ borderRadius: 'var(--radius)' }}
           >
             {submitState === 'success' && submittedSnapshot ? (
               <div
@@ -274,85 +272,59 @@ export const ContactSection: React.FC = () => {
                 aria-live="polite"
                 className="flex h-full flex-col justify-center py-6"
               >
-                <div className="flex items-center gap-3 text-[#541C2B] dark:text-[#C5A46D]">
+                <div className="flex items-center gap-3 text-[var(--accent)]">
                   <CheckCircle2 className="h-7 w-7 shrink-0" aria-hidden="true" />
-                  <h3 className="font-display text-2xl sm:text-3xl font-semibold text-[#202020] dark:text-white">
-                    Event Inquiry Recorded
+                  <h3 className="font-display text-2xl sm:text-3xl font-semibold text-[var(--text)]">
+                    Inquiry Recorded
                   </h3>
                 </div>
-                <p className="mt-3 text-sm leading-relaxed text-[#202020]/80 dark:text-white/80">
-                  Thank you, <span className="font-semibold">{submittedSnapshot.fullName}</span>.
-                  Your consultation request for{' '}
-                  <span className="font-semibold">{submittedSnapshot.eventType}</span> on{' '}
-                  <span className="font-semibold tabular-nums">
-                    {submittedSnapshot.preferredDate}
-                  </span>{' '}
-                  has been validated and prepared.
+                <p className="mt-3 text-sm leading-relaxed text-[var(--text-muted)]">
+                  Thank you, <span className="font-semibold text-[var(--text)]">{submittedSnapshot.fullName}</span>.
+                  Your <span className="font-semibold text-[var(--text)]">{submittedSnapshot.eventType}</span> request
+                  for <span className="font-semibold text-[var(--text)] tabular-nums">{submittedSnapshot.preferredDate}</span> is prepared.
                 </p>
 
-                <dl className="mt-6 grid grid-cols-1 gap-3 rounded-lg border border-[#541C2B]/12 dark:border-white/10 bg-[#FAF8F4] dark:bg-[#1a1a1a] p-5 text-xs sm:grid-cols-2">
-                  <div>
-                    <dt className="text-[#202020]/60 dark:text-white/60">Email</dt>
-                    <dd className="mt-0.5 font-medium text-[#202020] dark:text-white">
-                      {submittedSnapshot.email}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-[#202020]/60 dark:text-white/60">Phone</dt>
-                    <dd className="mt-0.5 font-medium text-[#202020] dark:text-white tabular-nums">
-                      {submittedSnapshot.phoneNumber}
-                    </dd>
-                  </div>
-                </dl>
-
-                <div className="mt-7">
-                  <button
+                <div className="mt-6">
+                  <motion.button
                     type="button"
+                    whileTap={{ scale: 0.97 }}
                     onClick={() => {
                       setSubmitState('idle');
                       setSubmittedSnapshot(null);
                     }}
-                    className="inline-flex min-h-[44px] items-center justify-center rounded-md bg-[#541C2B] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#3f1420] dark:bg-[#C5A46D] dark:text-[#151515] dark:hover:bg-[#d4b681] transition-colors cursor-pointer"
+                    className="kk-shimmer-btn inline-flex min-h-[44px] items-center justify-center bg-[var(--accent)] px-6 py-2.5 text-sm font-semibold text-[var(--accent-text)] hover:opacity-90 transition-opacity cursor-pointer"
+                    style={{ borderRadius: 'var(--radius-btn)' }}
                   >
-                    Submit Another Inquiry
-                  </button>
+                    New Inquiry
+                  </motion.button>
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} noValidate className="space-y-5">
-                <div className="border-b border-[#541C2B]/10 dark:border-white/10 pb-4">
-                  <h3 className="font-display text-2xl font-semibold text-[#202020] dark:text-white">
-                    Request an Event Consultation
+              <form onSubmit={handleSubmit} noValidate className="space-y-4">
+                <div className="border-b border-[var(--border)] pb-3">
+                  <h3 className="font-display text-2xl font-semibold text-[var(--text)]">
+                    Book Consultation
                   </h3>
-                  <p className="mt-1 text-xs text-[#202020]/65 dark:text-white/65">
-                    All fields marked are required for tailored scheduling and concept preparation.
-                  </p>
                 </div>
 
                 {submitState === 'error' && (
                   <div
                     role="alert"
-                    className="flex items-start gap-3 rounded-md border border-[#9e2a2b]/40 bg-[#9e2a2b]/8 dark:bg-[#9e2a2b]/20 p-4 text-xs text-[#7f1d1d] dark:text-[#fecaca]"
+                    className="flex items-center gap-2.5 border border-red-700/40 bg-red-700/10 dark:border-red-400/40 dark:bg-red-950/40 p-3.5 text-xs text-red-900 dark:text-red-200"
+                    style={{ borderRadius: 'var(--radius-btn)' }}
                   >
-                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                    <div>
-                      <p className="font-semibold">Please review the highlighted fields below.</p>
-                      <p className="mt-0.5">
-                        Ensure your name, phone number, valid email address, event type, upcoming
-                        date, and message are filled out accurately.
-                      </p>
-                    </div>
+                    <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <span className="font-medium">Please check highlighted fields.</span>
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                  {/* Full Name */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label
                       htmlFor="contact-fullName"
-                      className="block text-xs font-semibold text-[#202020] dark:text-white mb-1.5"
+                      className="block text-xs font-semibold text-[var(--text)] mb-1.5"
                     >
-                      Full Name
+                      Name
                     </label>
                     <input
                       id="contact-fullName"
@@ -361,19 +333,20 @@ export const ContactSection: React.FC = () => {
                       autoComplete="name"
                       value={values.fullName}
                       onChange={(e) => handleChange('fullName', e.target.value)}
-                      placeholder="Enter your full name"
+                      placeholder="Full name"
                       aria-invalid={Boolean(errors.fullName)}
                       aria-describedby={errors.fullName ? 'error-fullName' : undefined}
                       className={`${inputBaseClass} ${
                         errors.fullName
-                          ? 'border-[#b91c1c] dark:border-[#f87171]'
-                          : 'border-[#541C2B]/20 dark:border-white/15'
+                          ? 'border-red-700 dark:border-red-400'
+                          : 'border-[var(--border)] focus:border-[var(--accent)]'
                       }`}
+                      style={{ borderRadius: 'var(--radius-btn)' }}
                     />
                     {errors.fullName && (
                       <p
                         id="error-fullName"
-                        className="mt-1.5 flex items-center gap-1.5 text-xs text-[#b91c1c] dark:text-[#fca5a5]"
+                        className="mt-1 flex items-center gap-1 text-xs text-red-700 dark:text-red-300"
                       >
                         <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         <span>{errors.fullName}</span>
@@ -381,13 +354,12 @@ export const ContactSection: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Phone Number */}
                   <div>
                     <label
                       htmlFor="contact-phoneNumber"
-                      className="block text-xs font-semibold text-[#202020] dark:text-white mb-1.5"
+                      className="block text-xs font-semibold text-[var(--text)] mb-1.5"
                     >
-                      Phone Number
+                      Phone
                     </label>
                     <input
                       id="contact-phoneNumber"
@@ -396,19 +368,20 @@ export const ContactSection: React.FC = () => {
                       autoComplete="tel"
                       value={values.phoneNumber}
                       onChange={(e) => handleChange('phoneNumber', e.target.value)}
-                      placeholder="Enter your contact number"
+                      placeholder="Phone number"
                       aria-invalid={Boolean(errors.phoneNumber)}
                       aria-describedby={errors.phoneNumber ? 'error-phoneNumber' : undefined}
                       className={`${inputBaseClass} ${
                         errors.phoneNumber
-                          ? 'border-[#b91c1c] dark:border-[#f87171]'
-                          : 'border-[#541C2B]/20 dark:border-white/15'
+                          ? 'border-red-700 dark:border-red-400'
+                          : 'border-[var(--border)] focus:border-[var(--accent)]'
                       }`}
+                      style={{ borderRadius: 'var(--radius-btn)' }}
                     />
                     {errors.phoneNumber && (
                       <p
                         id="error-phoneNumber"
-                        className="mt-1.5 flex items-center gap-1.5 text-xs text-[#b91c1c] dark:text-[#fca5a5]"
+                        className="mt-1 flex items-center gap-1 text-xs text-red-700 dark:text-red-300"
                       >
                         <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         <span>{errors.phoneNumber}</span>
@@ -417,14 +390,13 @@ export const ContactSection: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                  {/* Email Address */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label
                       htmlFor="contact-email"
-                      className="block text-xs font-semibold text-[#202020] dark:text-white mb-1.5"
+                      className="block text-xs font-semibold text-[var(--text)] mb-1.5"
                     >
-                      Email Address
+                      Email
                     </label>
                     <input
                       id="contact-email"
@@ -438,14 +410,15 @@ export const ContactSection: React.FC = () => {
                       aria-describedby={errors.email ? 'error-email' : undefined}
                       className={`${inputBaseClass} ${
                         errors.email
-                          ? 'border-[#b91c1c] dark:border-[#f87171]'
-                          : 'border-[#541C2B]/20 dark:border-white/15'
+                          ? 'border-red-700 dark:border-red-400'
+                          : 'border-[var(--border)] focus:border-[var(--accent)]'
                       }`}
+                      style={{ borderRadius: 'var(--radius-btn)' }}
                     />
                     {errors.email && (
                       <p
                         id="error-email"
-                        className="mt-1.5 flex items-center gap-1.5 text-xs text-[#b91c1c] dark:text-[#fca5a5]"
+                        className="mt-1 flex items-center gap-1 text-xs text-red-700 dark:text-red-300"
                       >
                         <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         <span>{errors.email}</span>
@@ -453,13 +426,12 @@ export const ContactSection: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Preferred Event Date */}
                   <div>
                     <label
                       htmlFor="contact-preferredDate"
-                      className="block text-xs font-semibold text-[#202020] dark:text-white mb-1.5"
+                      className="block text-xs font-semibold text-[var(--text)] mb-1.5"
                     >
-                      Preferred Event Date
+                      Date
                     </label>
                     <input
                       id="contact-preferredDate"
@@ -471,14 +443,15 @@ export const ContactSection: React.FC = () => {
                       aria-describedby={errors.preferredDate ? 'error-preferredDate' : undefined}
                       className={`${inputBaseClass} tabular-nums ${
                         errors.preferredDate
-                          ? 'border-[#b91c1c] dark:border-[#f87171]'
-                          : 'border-[#541C2B]/20 dark:border-white/15'
+                          ? 'border-red-700 dark:border-red-400'
+                          : 'border-[var(--border)] focus:border-[var(--accent)]'
                       }`}
+                      style={{ borderRadius: 'var(--radius-btn)' }}
                     />
                     {errors.preferredDate && (
                       <p
                         id="error-preferredDate"
-                        className="mt-1.5 flex items-center gap-1.5 text-xs text-[#b91c1c] dark:text-[#fca5a5]"
+                        className="mt-1 flex items-center gap-1 text-xs text-red-700 dark:text-red-300"
                       >
                         <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         <span>{errors.preferredDate}</span>
@@ -487,11 +460,10 @@ export const ContactSection: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Event Type */}
                 <div>
                   <label
                     htmlFor="contact-eventType"
-                    className="block text-xs font-semibold text-[#202020] dark:text-white mb-1.5"
+                    className="block text-xs font-semibold text-[var(--text)] mb-1.5"
                   >
                     Event Type
                   </label>
@@ -504,22 +476,22 @@ export const ContactSection: React.FC = () => {
                     aria-describedby={errors.eventType ? 'error-eventType' : undefined}
                     className={`${inputBaseClass} ${
                       errors.eventType
-                        ? 'border-[#b91c1c] dark:border-[#f87171]'
-                        : 'border-[#541C2B]/20 dark:border-white/15'
+                        ? 'border-red-700 dark:border-red-400'
+                        : 'border-[var(--border)] focus:border-[var(--accent)]'
                     }`}
+                    style={{ borderRadius: 'var(--radius-btn)' }}
                   >
-                    <option value="">Select an event or service type</option>
+                    <option value="">Select event type</option>
                     {SERVICES.map((service) => (
                       <option key={service.number} value={service.title}>
                         {service.title}
                       </option>
                     ))}
-                    <option value="Custom Celebration / Other">Custom Celebration / Other</option>
                   </select>
                   {errors.eventType && (
                     <p
                       id="error-eventType"
-                      className="mt-1.5 flex items-center gap-1.5 text-xs text-[#b91c1c] dark:text-[#fca5a5]"
+                      className="mt-1 flex items-center gap-1 text-xs text-red-700 dark:text-red-300"
                     >
                       <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       <span>{errors.eventType}</span>
@@ -527,33 +499,33 @@ export const ContactSection: React.FC = () => {
                   )}
                 </div>
 
-                {/* Message */}
                 <div>
                   <label
                     htmlFor="contact-message"
-                    className="block text-xs font-semibold text-[#202020] dark:text-white mb-1.5"
+                    className="block text-xs font-semibold text-[var(--text)] mb-1.5"
                   >
-                    Message
+                    Notes
                   </label>
                   <textarea
                     id="contact-message"
                     name="message"
-                    rows={4}
+                    rows={3}
                     value={values.message}
                     onChange={(e) => handleChange('message', e.target.value)}
-                    placeholder="Share your venue ideas, estimated guest count, preferred colors, or special requirements..."
+                    placeholder="Venue and guest count..."
                     aria-invalid={Boolean(errors.message)}
                     aria-describedby={errors.message ? 'error-message' : undefined}
                     className={`${inputBaseClass} resize-y ${
                       errors.message
-                        ? 'border-[#b91c1c] dark:border-[#f87171]'
-                        : 'border-[#541C2B]/20 dark:border-white/15'
+                        ? 'border-red-700 dark:border-red-400'
+                        : 'border-[var(--border)] focus:border-[var(--accent)]'
                     }`}
+                    style={{ borderRadius: 'var(--radius-btn)' }}
                   />
                   {errors.message && (
                     <p
                       id="error-message"
-                      className="mt-1.5 flex items-center gap-1.5 text-xs text-[#b91c1c] dark:text-[#fca5a5]"
+                      className="mt-1 flex items-center gap-1 text-xs text-red-700 dark:text-red-300"
                     >
                       <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       <span>{errors.message}</span>
@@ -561,15 +533,16 @@ export const ContactSection: React.FC = () => {
                   )}
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-1">
                   <motion.button
                     type="submit"
                     whileHover={{ y: -2 }}
-                    whileTap={{ scale: 0.99 }}
+                    whileTap={{ scale: 0.97 }}
                     transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-                    className="group inline-flex min-h-[46px] w-full sm:w-auto items-center justify-center gap-2.5 rounded-md bg-[#541C2B] px-7 py-3 text-sm font-semibold text-white hover:bg-[#3f1420] dark:bg-[#C5A46D] dark:text-[#151515] dark:hover:bg-[#d4b681] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C5A46D]"
+                    className="kk-shimmer-btn group inline-flex min-h-[46px] w-full sm:w-auto items-center justify-center gap-2.5 bg-[var(--accent)] px-7 py-3 text-sm font-semibold text-[var(--accent-text)] shadow-[var(--shadow)] hover:opacity-90 transition-opacity cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                    style={{ borderRadius: 'var(--radius-btn)' }}
                   >
-                    <span>Send Event Inquiry</span>
+                    <span>Send Inquiry</span>
                     <Send
                       className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5"
                       aria-hidden="true"

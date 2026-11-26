@@ -1,0 +1,23 @@
+# Changelog
+
+Summary of the multi-theme system, visual upgrades, motion choreography, and responsiveness enhancements for **KK Decor and Event**.
+
+## Files Added & Updated
+
+- **`index.html`**: Added curated Google Fonts (`Cormorant Garamond`, `Plus Jakarta Sans`, `Fraunces`, `DM Sans`, `Cinzel`, `Manrope`, `Bricolage Grotesque`) and an early pre-paint script to apply persisted `kk-decor-theme` (`dark`) and `kk-decor-style` (`data-style`) before hydration.
+- **`src/styles/themes.css`**: Introduced full CSS custom property token system (`--bg`, `--surface`, `--surface-alt`, `--text`, `--text-muted`, `--accent`, `--accent-text`, `--accent-2`, `--border`, `--border-strong`, `--radius`, `--radius-btn`, `--font-display`, `--font-sans`, `--shadow`, `--glow`, `--footer-bg`, `--footer-text`, and fluid `clamp()` spacing tokens) across 4 templates (`royal-gold`, `garden-bloom`, `midnight-gala`, `modern-minimal`) in both light and dark modes.
+- **`src/index.css`**: Imported `themes.css`, configured Tailwind v4 `@custom-variant dark`, converted architectural patterns (`kk-hero-lattice`, `kk-fine-grid`, `kk-diagonal-weave`, `kk-double-weave`) to theme tokens, added animated `.kk-gradient-border-card` shimmer borders, and strengthened `prefers-reduced-motion` rules.
+- **`src/context/ThemeContext.tsx`**: Extended context to manage both `mode` (`light | dark`) and `style` (4 templates), `THEME_STYLES` swatch metadata, `isSwitchingStyle` cross-fade flag, and safe `try/catch` `localStorage` persistence.
+- **`src/components/StyleSwitcher.tsx`**: Built collapsible bottom-right floating template switcher with live 4-color preview swatches, template selection radio group, appearance mode toggle, `Escape` key handling, and `44px+` tap targets.
+- **`src/components/BrandMark.tsx`**: Tokenized monogram SVG and wordmark with `var(--accent)`, `var(--accent-2)`, `var(--accent-text)`, and `onDarkSurface` footer support.
+- **`src/data/companyData.ts`**: Added `HERO_METRICS` (`150+ Events Styled`, `120+ Clients Served`, `8+ Years Experience`) while preserving all original company copy, services, portfolio concepts, TikTok videos, partner slots, and un-fabricated contact placeholders.
+- **`src/components/MotionPrimitives.tsx`**: Added `useIsFinePointer()` touch/reduced-motion guard, `SplitTextReveal`, `MagneticLink`, `SectionReveal` (`fade-up`, `clip-rise`, `slide-left`, `scale-in`), desktop-only `CustomCursor`, `LoadingIntro` splash reveal, and template-adaptive `AnimatedSectionDivider` (`diamond`, `floral`, `gala`, `editorial`).
+- **`src/components/Navbar.tsx`**: Tokenized sticky header with `44px+` touch targets, `ScrollProgressBar`, and full-screen animated mobile menu with staggered links.
+- **`src/components/HeroSection.tsx`**: Upgraded hero with `SplitTextReveal` headline, fluid `clamp()` typography, touch-gated layered parallax (`useScroll`/`useTransform`), animated CSS/SVG decor motifs (arches, drapery valance, botanical floral stem, chandelier rosette), magnetic CTAs, animated counters, and continuous services marquee strip.
+- **`src/components/AboutSection.tsx` & `src/components/WhyChooseSection.tsx`**: Tokenized surfaces/radii/shadows and added `.kk-gradient-border-card` borders and spring icon micro-animations.
+- **`src/components/ServicesSection.tsx`**: Tokenized cards with staggered reveals, `.kk-gradient-border-card` hover borders, and icon micro-animations.
+- **`src/components/PortfolioSection.tsx`**: Upgraded to responsive masonry/bento grid (`md:grid-cols-6`), desktop-only 3D tilt (`useMotionValue`/`useSpring`), glow aura, `layout` + `AnimatePresence` category filtering, and keyboard-accessible Lightbox (`Escape`, `ArrowLeft`, `ArrowRight`, prev/next buttons, and counter).
+- **`src/components/ProcessSection.tsx`**: Replaced desktop/mobile split with a unified scroll-drawn vertical timeline (`useScroll` + `useSpring` driving `scaleY`) featuring an alternating 2-column spine on `md+` and left spine on mobile.
+- **`src/components/TestimonialsSection.tsx`**: Added horizontal swipe drag gestures (`drag="x"`), autoplay with pause on hover/focus/drag, and `44px+` controls while preserving the Sample Showcase Notice.
+- **`src/components/PartnersSection.tsx`, `src/components/TikTokShowcaseSection.tsx`, `src/components/ContactSection.tsx`, `src/components/Footer.tsx`**: Converted all styling to theme tokens, preserved official TikTok embeds and honest placeholders, and ensured `44px+` interactive targets.
+- **`src/App.tsx`**: Added lazy-loading (`React.lazy` + `Suspense`) for below-the-fold sections, distinct `SectionReveal` entrances per section, `LoadingIntro`, `CustomCursor`, `StyleSwitcher`, skip-to-content link, and smooth style cross-fade overlay.
